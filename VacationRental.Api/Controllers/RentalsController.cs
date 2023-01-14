@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using VacationRental.Api.Mappings;
 using VacationRental.Api.Models;
+using VacationRental.Application.Contracts;
 
 namespace VacationRental.Api.Controllers
 {
@@ -10,34 +11,50 @@ namespace VacationRental.Api.Controllers
     [ApiController]
     public class RentalsController : ControllerBase
     {
-        private readonly IDictionary<int, RentalViewModel> _rentals;
-        public RentalsController(IDictionary<int, RentalViewModel> rentals)
+        private readonly IRentalService _rentalService;
+        private readonly RentalViewModelMapper _rentalViewModelMapper;
+        private readonly RentalCreateMapper _rentalCreateMapper;
+
+        public RentalsController(
+            IRentalService rentalService,
+            RentalViewModelMapper rentalViewModelMapper,
+            RentalCreateMapper rentalCreateMapper)
         {
-            _rentals = rentals;
+            _rentalService = rentalService??throw new ArgumentNullException(nameof(rentalService));
+            _rentalViewModelMapper =
+                rentalViewModelMapper ?? throw new ArgumentNullException(nameof(rentalViewModelMapper));
+            _rentalCreateMapper = rentalCreateMapper??throw new ArgumentNullException(nameof(rentalCreateMapper));
         }
 
         [HttpGet]
         [Route("{rentalId:int}")]
         public async Task<RentalViewModel> Get(int rentalId)
         {
-            if (!_rentals.ContainsKey(rentalId))
-                throw new ApplicationException("Rental not found");
+            var get = await _rentalService.GetById(rentalId);
 
-            return _rentals[rentalId];
+            if (!get.Execution.IsSuccess)
+            {
+                throw new ApplicationException(get.Execution.Error.Message);
+            }
+
+            return _rentalViewModelMapper.From(get.Data);
         }
 
         [HttpPost]
         public async Task<ResourceIdViewModel> Post(RentalBindingModel model)
         {
-            var key = new ResourceIdViewModel { Id = _rentals.Keys.Count + 1 };
+            var createRequest = _rentalCreateMapper.From(model);
+            var create = await _rentalService.Create(createRequest);
 
-            _rentals.Add(key.Id, new RentalViewModel
+            if (!create.Execution.IsSuccess)
             {
-                Id = key.Id,
-                Units = model.Units
-            });
+                throw new ApplicationException(create.Execution.Error.Message);
+            }
 
-            return key;
+            return new ResourceIdViewModel()
+            {
+                Id = create.Data.RentalId
+            };
         }
     }
 }

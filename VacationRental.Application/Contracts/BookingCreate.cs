@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 
-namespace VacationRental.Domain
+namespace VacationRental.Application.Contracts
 {
-    public class Booking
+    public class BookingCreate
     {
-        public int Id { get; set; }
         public int RentalId { get; set; }
         public DateTime Start { get; set; }
         public int Nights { get; set; }

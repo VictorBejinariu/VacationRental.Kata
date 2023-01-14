@@ -6,8 +6,7 @@ namespace VacationRental.Application.Contracts
 {
     public interface IRentalService
     {
-        Task<ApiReadContext<Rental>> GetById(int rentalId);
-        Task<ApiCreateContext<RentalCreate, RentalCreateResponse>> Create(RentalCreate input);
-
+        Task<ApiRequestContext<Rental>> GetById(int rentalId);
+        Task<ApiRequestContext<RentalCreateResponse>> Create(RentalCreate input);
     }
 }
