@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.33130.402
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VacationRental.Api", "VacationRental.Api\VacationRental.Api.csproj", "{478C6CBF-6F84-4604-8E31-DEDFDFE10DBC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VacationRental.Api.Tests", "VacationRental.Api.Tests\VacationRental.Api.Tests.csproj", "{57FE6E13-7144-459F-BCA8-431087D3DAEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VacationRental.Application", "VacationRental.Application\VacationRental.Application.csproj", "{833FAF0B-BB9C-4F84-A4EE-E6CF0212CC13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VacationRental.Infrastructure", "VacationRental.Infrastructure\VacationRental.Infrastructure.csproj", "{DA1E4CAC-5B74-41FD-A6F7-863C169085D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VacationRental.Application.Tests", "VacationRental.Application.Tests\VacationRental.Application.Tests.csproj", "{A5245F39-5DD2-46A5-A923-2F9D764A8617}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{57FE6E13-7144-459F-BCA8-431087D3DAEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57FE6E13-7144-459F-BCA8-431087D3DAEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57FE6E13-7144-459F-BCA8-431087D3DAEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{833FAF0B-BB9C-4F84-A4EE-E6CF0212CC13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{833FAF0B-BB9C-4F84-A4EE-E6CF0212CC13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{833FAF0B-BB9C-4F84-A4EE-E6CF0212CC13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{833FAF0B-BB9C-4F84-A4EE-E6CF0212CC13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA1E4CAC-5B74-41FD-A6F7-863C169085D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA1E4CAC-5B74-41FD-A6F7-863C169085D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA1E4CAC-5B74-41FD-A6F7-863C169085D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA1E4CAC-5B74-41FD-A6F7-863C169085D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5245F39-5DD2-46A5-A923-2F9D764A8617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5245F39-5DD2-46A5-A923-2F9D764A8617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5245F39-5DD2-46A5-A923-2F9D764A8617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5245F39-5DD2-46A5-A923-2F9D764A8617}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
