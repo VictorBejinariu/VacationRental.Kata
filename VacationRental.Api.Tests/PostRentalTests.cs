@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using VacationRental.Api.Models;
@@ -14,7 +13,7 @@ namespace VacationRental.Api.Tests
 
         public PostRentalTests(IntegrationFixture fixture)
         {
-            _client = fixture.Client;
+            _client = fixture.Client??throw new ArgumentNullException(nameof(fixture.Client));
         }
 
         [Fact]
