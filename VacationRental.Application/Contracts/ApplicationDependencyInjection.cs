@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using VacationRental.Application.Services;
 
 namespace VacationRental.Application.Contracts
 {
@@ -6,7 +7,7 @@ namespace VacationRental.Application.Contracts
     {
         public static IServiceCollection RegisterApplication(this IServiceCollection @this)
         {
-
+            @this.AddSingleton<IRentalService, RentalService>();
             return @this;
         }
     }
