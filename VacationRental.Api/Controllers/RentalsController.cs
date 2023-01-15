@@ -11,16 +11,16 @@ namespace VacationRental.Api.Controllers
     [ApiController]
     public class RentalsController : ControllerBase
     {
-        private readonly IRentalService _rentalService;
+        private readonly IRentalHandler _rentalHandler;
         private readonly RentalViewModelMapper _rentalViewModelMapper;
         private readonly RentalCreateMapper _rentalCreateMapper;
 
         public RentalsController(
-            IRentalService rentalService,
+            IRentalHandler rentalHandler,
             RentalViewModelMapper rentalViewModelMapper,
             RentalCreateMapper rentalCreateMapper)
         {
-            _rentalService = rentalService??throw new ArgumentNullException(nameof(rentalService));
+            _rentalHandler = rentalHandler??throw new ArgumentNullException(nameof(rentalHandler));
             _rentalViewModelMapper =
                 rentalViewModelMapper ?? throw new ArgumentNullException(nameof(rentalViewModelMapper));
             _rentalCreateMapper = rentalCreateMapper??throw new ArgumentNullException(nameof(rentalCreateMapper));
@@ -30,7 +30,7 @@ namespace VacationRental.Api.Controllers
         [Route("{rentalId:int}")]
         public async Task<RentalViewModel> Get(int rentalId)
         {
-            var get = await _rentalService.GetById(rentalId);
+            var get = await _rentalHandler.GetById(rentalId);
 
             if (!get.Execution.IsSuccess)
             {
@@ -44,7 +44,7 @@ namespace VacationRental.Api.Controllers
         public async Task<ResourceIdViewModel> Post(RentalBindingModel model)
         {
             var createRequest = _rentalCreateMapper.From(model);
-            var create = await _rentalService.Create(createRequest);
+            var create = await _rentalHandler.Create(createRequest);
 
             if (!create.Execution.IsSuccess)
             {

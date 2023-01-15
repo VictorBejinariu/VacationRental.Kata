@@ -6,13 +6,13 @@ using FluentAssertions;
 using Moq;
 using VacationRental.Application.Abstractions;
 using VacationRental.Application.Contracts;
-using VacationRental.Application.Services;
+using VacationRental.Application.Handlers;
 using VacationRental.Domain;
 using Xunit;
 
 namespace VacationRental.Application.Tests
 {
-    public class BookingServiceTests
+    public class BookingHandlerTests
     {
         private const int IdForMissingBooking = 293349;
         private const int IdForMissingRental = 887;
@@ -27,11 +27,11 @@ namespace VacationRental.Application.Tests
         {
             using (var mock = AutoMock.GetLoose())
             {
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.GetById(It.Is<int>(i=>i==IdForMissingBooking)))
                     .ReturnsAsync((Booking) null);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.GetById(IdForMissingBooking);
 
@@ -45,7 +45,7 @@ namespace VacationRental.Application.Tests
         {
             using (var mock = AutoMock.GetLoose())
             {
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == IdForExistingBooking)))
                     .ReturnsAsync(new Booking()
                     {
@@ -55,7 +55,7 @@ namespace VacationRental.Application.Tests
                         RentalId = 1
                     });
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.GetById(IdForExistingBooking);
 
@@ -74,7 +74,7 @@ namespace VacationRental.Application.Tests
             {
                 var input = GivenBookingWith(SomeRentalId, SomeNegativeValueForNights, SomeStartDate);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result =await sut.Create(input);
 
@@ -89,11 +89,11 @@ namespace VacationRental.Application.Tests
             using (var mock = AutoMock.GetLoose())
             {
                 var input = GivenBookingWith(IdForMissingRental, SomeNightsValue, SomeStartDate);
-                mock.Mock<IRentalRepository>()
+                mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == IdForMissingRental)))
                     .ReturnsAsync((Rental) null);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.Create(input);
 
@@ -108,14 +108,14 @@ namespace VacationRental.Application.Tests
             using (var mock = AutoMock.GetLoose())
             {
                 var input = GivenBookingWith(SomeRentalId, 3, SomeStartDate);
-                mock.Mock<IRentalRepository>()
+                mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == SomeRentalId)))
                     .ReturnsAsync(new Rental()
                     {
                         Id = SomeRentalId,
                         Units = 2
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Get())
                     .ReturnsAsync(new List<Booking>()
                     {
@@ -127,11 +127,11 @@ namespace VacationRental.Application.Tests
                             Nights = 3
                         }
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Create(It.IsAny<Booking>()))
                     .ReturnsAsync(true);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.Create(input);
 
@@ -146,24 +146,24 @@ namespace VacationRental.Application.Tests
         {
             using (var mock = AutoMock.GetLoose())
             {
-                mock.Mock<IRentalRepository>()
+                mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == SomeRentalId)))
                     .ReturnsAsync(new Rental()
                     {
                         Id = SomeRentalId,
                         Units = 1
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Get())
                     .ReturnsAsync(new List<Booking>()
                     {
                         existingBooking
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Create(It.IsAny<Booking>()))
                     .ReturnsAsync(true);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.Create(newBooking);
 
@@ -179,24 +179,24 @@ namespace VacationRental.Application.Tests
         {
             using (var mock = AutoMock.GetLoose())
             {
-                mock.Mock<IRentalRepository>()
+                mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == SomeRentalId)))
                     .ReturnsAsync(new Rental()
                     {
                         Id = SomeRentalId,
                         Units = 2
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Get())
                     .ReturnsAsync(new List<Booking>()
                     {
                         existingBooking
                     });
-                mock.Mock<IBookingRepository>()
+                mock.Mock<IBookingService>()
                     .Setup(r => r.Create(It.IsAny<Booking>()))
                     .ReturnsAsync(true);
 
-                var sut = mock.Create<BookingService>();
+                var sut = mock.Create<BookingHandler>();
 
                 var result = await sut.Create(newBooking);
 

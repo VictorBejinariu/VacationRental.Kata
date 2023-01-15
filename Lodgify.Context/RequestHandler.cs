@@ -2,9 +2,9 @@
 
 namespace Lodgify.Context
 {
-    public class ApiRequestContext<TOutput>
+    public class RequestHandler<TOutput>
     {
-        private ApiRequestContext()
+        private RequestHandler()
         {
         }
         
@@ -17,20 +17,20 @@ namespace Lodgify.Context
             private set => _data = value;
         }
 
-        public ApiRequestContext<TOutput> With(TOutput data)
+        public RequestHandler<TOutput> With(TOutput data)
         {
             _data = data;
             return this;
         }
 
-        public ApiRequestContext<TOutput> With(Error error)
+        public RequestHandler<TOutput> With(Error error)
         {
             Execution.FailWith(error);
             return this;
         }
-        public static ApiRequestContext<TOutput> New()
+        public static RequestHandler<TOutput> New()
         {
-            var context = new ApiRequestContext<TOutput>();
+            var context = new RequestHandler<TOutput>();
             return context;
         }
     }

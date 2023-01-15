@@ -1,91 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Lodgify.Context;
 using VacationRental.Application.Abstractions;
-using VacationRental.Application.Contracts;
 using VacationRental.Domain;
 
 namespace VacationRental.Application.Services
 {
-    public class BookingService:IBookingService
+    internal class BookingService:IBookingService
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IRentalRepository _rentalRepository;
 
-        public BookingService(
-            IBookingRepository bookingRepository,
-            IRentalRepository rentalRepository)
+        public BookingService(IBookingRepository bookingRepository)
         {
             _bookingRepository = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
-            _rentalRepository = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
         }
-        
-        public async Task<ApiRequestContext<Booking>> GetById(int bookingId)
+        public Task<ICollection<Booking>> Get()
         {
-            var result = await _bookingRepository.GetById(bookingId);
-
-            if (result == null)
-            {
-                return ApiRequestContext<Booking>.New().With(Error.WithMessage("Booking not found"));
-            }
-
-            return ApiRequestContext<Booking>.New().With(result);
+            return _bookingRepository.Get();
         }
 
-        public async Task<ApiRequestContext<BookingCreateResponse>> Create(BookingCreate input)
+        public Task<Booking> GetById(int bookingId)
         {
-            if (input.Nights <= 0)
-            {
-                return ApiRequestContext<BookingCreateResponse>.New()
-                    .With(Error.WithMessage("Nights must be positive"));
-            }
+            return _bookingRepository.GetById(bookingId);
+        }
 
-            var rental = await _rentalRepository.GetById(input.RentalId);
-            
-            if (rental == null)
-            {
-                return ApiRequestContext<BookingCreateResponse>.New()
-                    .With(Error.WithMessage("Rental not found"));
-            }
-
-            for (var i = 0; i < input.Nights; i++)
-            {
-                var count = 0;
-                foreach (var booking in await _bookingRepository.Get())
-                {
-                    if (booking.RentalId == input.RentalId
-                        && (booking.Start <= input.Start.Date && booking.Start.AddDays(booking.Nights) > input.Start.Date)
-                        || (booking.Start < input.Start.AddDays(input.Nights) && booking.Start.AddDays(booking.Nights) >= input.Start.AddDays(input.Nights))
-                        || (booking.Start > input.Start && booking.Start.AddDays(booking.Nights) < input.Start.AddDays(input.Nights)))
-                    {
-                        count++;
-                    }
-                }
-                
-                if (count >= rental.Units)
-                {
-                    return ApiRequestContext<BookingCreateResponse>.New()
-                        .With(Error.WithMessage("Not available"));
-                }
-                
-            }
-
-            var newBooking = new Booking()
-            {
-                Nights = input.Nights,
-                RentalId = input.RentalId,
-                Start = input.Start.Date
-            };
-
-            if (!await _bookingRepository.Create(newBooking))
-            {
-                return ApiRequestContext<BookingCreateResponse>.New().With(Error.WithMessage("Failed Insert"));
-            }
-
-            return ApiRequestContext<BookingCreateResponse>.New().With(new BookingCreateResponse()
-            {
-                BookingId = newBooking.Id
-            });
+        public Task<bool> Create(Booking input)
+        {
+            return _bookingRepository.Create(input);
         }
     }
 }

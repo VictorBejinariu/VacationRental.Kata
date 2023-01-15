@@ -11,15 +11,15 @@ namespace VacationRental.Api.Controllers
     [ApiController]
     public class BookingsController : ControllerBase
     {
-        private readonly IBookingService _bookingService;
+        private readonly IBookingHandler _bookingHandler;
         private readonly BookingViewModelMapper _bookingViewModelMapper;
         private readonly BookingCreateMapper _bookingCreateMapper;
 
-        public BookingsController(IBookingService bookingService,
+        public BookingsController(IBookingHandler bookingHandler,
             BookingViewModelMapper bookingViewModelMapper,
             BookingCreateMapper bookingCreateMapper)
         {
-            _bookingService = bookingService??throw new ArgumentNullException(nameof(bookingService));
+            _bookingHandler = bookingHandler??throw new ArgumentNullException(nameof(bookingHandler));
             _bookingViewModelMapper = bookingViewModelMapper??throw new ArgumentNullException(nameof(bookingViewModelMapper));
             _bookingCreateMapper = bookingCreateMapper??throw new ArgumentNullException(nameof(bookingCreateMapper));
         }
@@ -28,7 +28,7 @@ namespace VacationRental.Api.Controllers
         [Route("{bookingId:int}")]
         public async Task<BookingViewModel> Get(int bookingId)
         {
-            var get = await _bookingService.GetById(bookingId);
+            var get = await _bookingHandler.GetById(bookingId);
             if (!get.Execution.IsSuccess)
             {
                 throw new ApplicationException(get.Execution.Error.Message);
@@ -39,7 +39,7 @@ namespace VacationRental.Api.Controllers
         [HttpPost]
         public async Task<ResourceIdViewModel> Post(BookingBindingModel model)
         {
-            var create = await _bookingService.Create(_bookingCreateMapper.From(model));
+            var create = await _bookingHandler.Create(_bookingCreateMapper.From(model));
 
             if (!create.Execution.IsSuccess)
             {

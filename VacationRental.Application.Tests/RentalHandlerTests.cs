@@ -9,7 +9,7 @@ using Xunit;
 
 namespace VacationRental.Application.Tests
 {
-    public class RentalServiceTests
+    public class RentalHandlerTests
     {
         private const int IdForSomeMissingRental = 285;
         private const int SomeRentalId = 1234;
@@ -24,7 +24,7 @@ namespace VacationRental.Application.Tests
                     .Setup(r => r.GetById(It.Is<int>(i=>i==IdForSomeMissingRental)))
                     .ReturnsAsync(() => null);
                 
-                var sut = mock.Create<RentalService>();
+                var sut = mock.Create<RentalHandler>();
 
                 var result = await sut.GetById(IdForSomeMissingRental);
 
@@ -47,7 +47,7 @@ namespace VacationRental.Application.Tests
                             Units = SomeRentalUnitsValue
                         });
 
-                var sut = mock.Create<RentalService>();
+                var sut = mock.Create<RentalHandler>();
 
                 var result = await sut.GetById(It.IsAny<int>());
 
