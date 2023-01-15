@@ -16,7 +16,7 @@ namespace VacationRental.Api.Tests
         private const int SomeNights = 3;
         private const int NegativeNightsValue = -10;
         private const int IdForNonExistingRental = 91919191;
-        private const string NegativeNightsErrorMessage = "Nigts must be positive";
+        private const string NegativeNightsErrorMessage = "Nights must be positive";
         private const string RentalsNotAvailableErrorMessage = "Not available";
         private const string RentalNotFoundErrormessage = "Rental not found";
 

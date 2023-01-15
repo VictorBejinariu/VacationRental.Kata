@@ -36,14 +36,16 @@ namespace VacationRental.Application.Services
         {
             if (input.Nights <= 0)
             {
-                throw new ApplicationException("Nigts must be positive");
+                return ApiRequestContext<BookingCreateResponse>.New()
+                    .With(Error.WithMessage("Nights must be positive"));
             }
 
             var rental = await _rentalRepository.GetById(input.RentalId);
             
             if (rental == null)
             {
-                throw new ApplicationException("Rental not found");
+                return ApiRequestContext<BookingCreateResponse>.New()
+                    .With(Error.WithMessage("Rental not found"));
             }
 
             for (var i = 0; i < input.Nights; i++)
@@ -59,8 +61,13 @@ namespace VacationRental.Application.Services
                         count++;
                     }
                 }
+                
                 if (count >= rental.Units)
-                    throw new ApplicationException("Not available");
+                {
+                    return ApiRequestContext<BookingCreateResponse>.New()
+                        .With(Error.WithMessage("Not available"));
+                }
+                
             }
 
             var newBooking = new Booking()

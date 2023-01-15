@@ -11,6 +11,7 @@ namespace VacationRental.Application.Tests
 {
     public class RentalServiceTests
     {
+        private const int IdForSomeMissingRental = 285;
         private const int SomeRentalId = 1234;
         private const int SomeRentalUnitsValue = 2392838;
         
@@ -20,12 +21,12 @@ namespace VacationRental.Application.Tests
             using (var mock = AutoMock.GetLoose())
             {
                 mock.Mock<IRentalRepository>()
-                    .Setup(r => r.GetById(It.IsAny<int>()))
+                    .Setup(r => r.GetById(It.Is<int>(i=>i==IdForSomeMissingRental)))
                     .ReturnsAsync(() => null);
                 
                 var sut = mock.Create<RentalService>();
 
-                var result = await sut.GetById(It.IsAny<int>());
+                var result = await sut.GetById(IdForSomeMissingRental);
 
                 result.Execution.IsSuccess.Should().BeFalse();
                 result.Execution.Error.Message.Should().Be("Rental not found");
