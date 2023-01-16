@@ -174,5 +174,77 @@ namespace VacationRental.Api.Tests
                 .ThrowAsync<ApplicationException>()
                 .WithMessage(RentalNotFoundErrormessage);
         }
+        
+        [Fact]
+        public async Task GivenCompleteRequest_WhenPostBooking_ThenAPostReturnsErrorWhenThereIsAPreparation()
+        {
+            var rentalResourceId = 
+                await GivenIdForSuccessfulRentalPostWith(noOfUnits: 1, 10,_client);
+            
+            var postBooking1Request = new BookingBindingModel
+            {
+                RentalId = rentalResourceId.Id,
+                Nights = 1,
+                Start = new DateTime(2002, 01, 01)
+            };
+
+            using (var postBooking1Response = 
+                   await _client.PostAsJsonAsync($"/api/v1/bookings", postBooking1Request))
+            {
+                postBooking1Response.IsSuccessStatusCode.Should().BeTrue();
+            }
+
+            var postBooking2Request = new BookingBindingModel
+            {
+                RentalId = rentalResourceId.Id,
+                Nights = 1,
+                Start = new DateTime(2002, 01, 04)
+            };
+
+            Func<Task> act = 
+                async () 
+                    => await _client.PostAsJsonAsync($"/api/v1/bookings", postBooking2Request);
+
+            await act
+                .Should()
+                .ThrowAsync<ApplicationException>()
+                .WithMessage(RentalsNotAvailableErrorMessage);
+        }
+        
+        [Fact]
+        public async Task GivenCompleteRequestAndTwoAvailableUnits_WhenPostBooking_ThenAPostReturnsOkWhenThereOneHasAPreparation()
+        {
+            var rentalResourceId = 
+                await GivenIdForSuccessfulRentalPostWith(noOfUnits: 2, 10,_client);
+            
+            var postBooking1Request = new BookingBindingModel
+            {
+                RentalId = rentalResourceId.Id,
+                Nights = 1,
+                Start = new DateTime(2002, 01, 01)
+            };
+
+            using (var postBooking1Response = 
+                   await _client.PostAsJsonAsync($"/api/v1/bookings", postBooking1Request))
+            {
+                postBooking1Response.IsSuccessStatusCode.Should().BeTrue();
+            }
+
+            var postBooking2Request = new BookingBindingModel
+            {
+                RentalId = rentalResourceId.Id,
+                Nights = 1,
+                Start = new DateTime(2002, 01, 04)
+            };
+
+            Func<Task> act = 
+                async () 
+                    => await _client.PostAsJsonAsync($"/api/v1/bookings", postBooking2Request);
+
+            await act
+                .Should()
+                .NotThrowAsync<ApplicationException>();
+        }
+
     }
 }

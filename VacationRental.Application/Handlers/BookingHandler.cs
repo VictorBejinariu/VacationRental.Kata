@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Lodgify.Context;
@@ -14,15 +15,18 @@ namespace VacationRental.Application.Handlers
         private readonly IBookingService _bookingService;
         private readonly IRentalService _rentalService;
         private readonly IUnitRepository _unitRepository;
+        private readonly IEnumerable<IBookingAdditionalWorkHydrator> _additionalWorkHydrators;
 
         public BookingHandler(
             IBookingService bookingRepository,
             IRentalService rentalRepository,
-            IUnitRepository unitRepository)
+            IUnitRepository unitRepository,
+            IEnumerable<IBookingAdditionalWorkHydrator> hydrators)
         {
             _bookingService = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
             _rentalService = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
             _unitRepository = unitRepository??throw new ArgumentNullException(nameof(unitRepository));
+            _additionalWorkHydrators = hydrators??new List<IBookingAdditionalWorkHydrator>();
         }
         
         public async Task<RequestHandler<Booking>> GetById(int bookingId)
@@ -68,27 +72,43 @@ namespace VacationRental.Application.Handlers
         }
         private async Task<BookingCreateContext> SelectAvailableUnit(BookingCreateContext context)
         {
+            var newBooking = context.Request;
+            
             var rentalUnits = await _unitRepository.GetByRentalId(context.Rental.Id);
-
             foreach (var unit in rentalUnits)
             {
-                var existingBookings = await _bookingService.GetByUnitId(unit.Id);
-                var newBooking = context.Request;
-                var overlappingBooking = existingBookings.FirstOrDefault(b =>
-                    b.Start <= newBooking.Start.Date && b.Start.AddDays(b.Nights) > newBooking.Start.Date
-                    || b.Start < newBooking.Start.AddDays(newBooking.Nights) &&
-                    b.Start.AddDays(b.Nights) >= newBooking.Start.AddDays(newBooking.Nights)
-                    || b.Start> newBooking.Start && b.Start.AddDays(b.Nights)<newBooking.Start.AddDays(newBooking.Nights));
-
-                if (overlappingBooking == null)
+                if (!await IsUnitAvailableForBooking(unit, newBooking))
                 {
-                    context.AvailableUnit = unit;
-                    return context;
+                    continue;
                 }
+                context.AvailableUnit = unit;
+                return context;
             }
             
             context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
             return context;
+        }
+        private async Task<bool> IsUnitAvailableForBooking(Unit unit, BookingCreate newBooking)
+        {
+            var existingBookings = await _bookingService.GetByUnitId(unit.Id);
+            foreach (var booking in existingBookings)
+            {
+                foreach (var hydrator in _additionalWorkHydrators)
+                {
+                    await hydrator.Hydrate(booking);
+                }
+            }
+            return !existingBookings.Any(b=>CheckOverlapping(b,newBooking));
+
+        } 
+        private bool CheckOverlapping(Booking existingBooking, BookingCreate newBooking)
+        {
+            return existingBooking.Start <= newBooking.Start.Date
+                        && existingBooking.Start.AddDays(existingBooking.Nights) > newBooking.Start.Date
+                    || existingBooking.Start < newBooking.Start.AddDays(newBooking.Nights)
+                        && existingBooking.Start.AddDays(existingBooking.Nights) >= newBooking.Start.AddDays(newBooking.Nights)
+                    || existingBooking.Start > newBooking.Start
+                        && existingBooking.Start.AddDays(existingBooking.Nights) < newBooking.Start.AddDays(newBooking.Nights);
         }
         private async Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
         {

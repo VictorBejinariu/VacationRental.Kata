@@ -9,9 +9,15 @@ namespace VacationRental.Api.Tests
     {
         public static async Task<ResourceIdViewModel> GivenIdForSuccessfulRentalPostWith(int noOfUnits, HttpClient client)
         {
+            return await GivenIdForSuccessfulRentalPostWith(noOfUnits, 0, client);
+        }
+        
+        public static async Task<ResourceIdViewModel> GivenIdForSuccessfulRentalPostWith(int noOfUnits, int preparationDays, HttpClient client)
+        {
             var postRentalRequest = new RentalBindingModel
             {
-                Units = noOfUnits
+                Units = noOfUnits,
+                PreparationTimeInDays = preparationDays
             };
 
             ResourceIdViewModel postRentalResult;
