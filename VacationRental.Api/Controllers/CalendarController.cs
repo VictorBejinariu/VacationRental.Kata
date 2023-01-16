@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using VacationRental.Api.Models;
 using VacationRental.Application.Abstractions;
+using VacationRental.Application.Contracts;
 
 namespace VacationRental.Api.Controllers
 {
@@ -13,6 +14,8 @@ namespace VacationRental.Api.Controllers
     {
         private readonly IRentalRepository _rentalRepository;
         private readonly IBookingRepository _bookingRepository;
+
+        private readonly ICalendarHandler _calendarHandler;
 
         public CalendarController(
             IRentalRepository rentalRepository,

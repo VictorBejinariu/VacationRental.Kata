@@ -64,24 +64,22 @@ namespace VacationRental.Application.Handlers
         }
         private async Task<BookingCreateContext> CheckOverlapping(BookingCreateContext context)
         {
-            for (var i = 0; i < context.Request.Nights; i++)
+
+            var count = 0;
+            foreach (var booking in await _bookingRepository.Get())
             {
-                var count = 0;
-                foreach (var booking in await _bookingRepository.Get())
+                if (booking.RentalId == context.Request.RentalId
+                    && (booking.Start <= context.Request.Start.Date && booking.Start.AddDays(booking.Nights) > context.Request.Start.Date)
+                    || (booking.Start < context.Request.Start.AddDays(context.Request.Nights) && booking.Start.AddDays(booking.Nights) >= context.Request.Start.AddDays(context.Request.Nights))
+                    || (booking.Start > context.Request.Start && booking.Start.AddDays(booking.Nights) < context.Request.Start.AddDays(context.Request.Nights)))
                 {
-                    if (booking.RentalId == context.Request.RentalId
-                        && (booking.Start <= context.Request.Start.Date && booking.Start.AddDays(booking.Nights) > context.Request.Start.Date)
-                        || (booking.Start < context.Request.Start.AddDays(context.Request.Nights) && booking.Start.AddDays(booking.Nights) >= context.Request.Start.AddDays(context.Request.Nights))
-                        || (booking.Start > context.Request.Start && booking.Start.AddDays(booking.Nights) < context.Request.Start.AddDays(context.Request.Nights)))
-                    {
-                        count++;
-                    }
+                    count++;
                 }
-                
-                if (count >= context.Rental.Units)
-                {
-                    context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
-                }
+            }
+            
+            if (count >= context.Rental.Units)
+            {
+                context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
             }
 
             return context;

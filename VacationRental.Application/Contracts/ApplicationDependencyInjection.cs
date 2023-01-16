@@ -13,6 +13,7 @@ namespace VacationRental.Application.Contracts
             @this.AddSingleton<IBookingHandler, BookingHandler>();
             @this.AddSingleton<IRentalService, RentalService>();
             @this.AddSingleton<IBookingService, BookingService>();
+            @this.AddSingleton<ICalendarHandler, CalendarHandler>();
             return @this;
         }
     }
