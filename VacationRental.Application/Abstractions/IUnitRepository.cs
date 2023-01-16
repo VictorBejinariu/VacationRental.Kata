@@ -7,7 +7,7 @@ namespace VacationRental.Application.Abstractions
     public interface IUnitRepository
     {
         Task<bool> Create(Unit unit);
-        Task<Unit> Get(int id);
+        Task<Unit> GetById(int id);
         Task<ICollection<Unit>> GetByRentalId(int rentalId);
     }
 }

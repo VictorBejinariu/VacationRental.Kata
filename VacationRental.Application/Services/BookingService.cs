@@ -10,11 +10,16 @@ namespace VacationRental.Application.Services
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IRentalService _rentalService;
+        private readonly IPreparationRepository _preparationRepository;
 
-        public BookingService(IBookingRepository bookingRepository, IRentalService rentalService)
+        public BookingService(IBookingRepository bookingRepository, 
+            IRentalService rentalService,
+            IPreparationRepository preparationRepository)
         {
             _bookingRepository = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
             _rentalService = rentalService??throw new ArgumentNullException(nameof(rentalService));
+            _preparationRepository =
+                preparationRepository ?? throw new ArgumentNullException(nameof(preparationRepository));
         }
         public async Task<ICollection<Booking>> Get()
         {
@@ -32,9 +37,21 @@ namespace VacationRental.Application.Services
             {
                 return false;
             }
+            
+            //TODO: Try Raise event of BookingCreated
+            
+            var rental = await _rentalService.GetById(input.RentalId);
 
+            await _preparationRepository.Create(new Preparation()
+            {
+                BookingId = input.Id,
+                RentalId = input.RentalId,
+                UnitId = input.UnitId,
+                Start = input.Start.AddDays(input.Nights).AddDays(1),
+                Nights = rental.PreparationTimeInDays
+            });
+            
             return true;
-
         }
 
         public async Task<ICollection<Booking>> GetByUnitId(int unitId)

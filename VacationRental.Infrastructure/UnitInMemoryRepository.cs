@@ -28,7 +28,7 @@ namespace VacationRental.Infrastructure
             return Task.FromResult(unit.Id>0);
         }
 
-        public Task<Unit> Get(int id)
+        public Task<Unit> GetById(int id)
         {
             if (!_data.ContainsKey(id))
             {

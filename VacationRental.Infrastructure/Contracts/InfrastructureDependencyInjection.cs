@@ -10,6 +10,7 @@ namespace VacationRental.Infrastructure.Contracts
             @this.AddSingleton<IRentalRepository, RentalInMemoryRepository>();
             @this.AddSingleton<IBookingRepository, BookingInMemoryRepository>();
             @this.AddSingleton<IUnitRepository, UnitInMemoryRepository>();
+            @this.AddSingleton<IPreparationRepository, PreparationInMemoryRepository>();
             return @this;
         }
     }
