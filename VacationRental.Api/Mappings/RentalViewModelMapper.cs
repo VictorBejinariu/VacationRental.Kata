@@ -9,7 +9,8 @@ namespace VacationRental.Api.Mappings
             new RentalViewModel()
             {
                 Id = rental.Id,
-                Units = rental.Units
+                Units = rental.Units,
+                PreparationTimeInDays = rental.PreparationTimeInDays
             };
     }
 }

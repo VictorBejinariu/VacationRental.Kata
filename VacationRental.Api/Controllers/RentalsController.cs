@@ -30,14 +30,14 @@ namespace VacationRental.Api.Controllers
         [Route("{rentalId:int}")]
         public async Task<RentalViewModel> Get(int rentalId)
         {
-            var get = await _rentalHandler.GetById(rentalId);
+            var rentalResult = await _rentalHandler.GetById(rentalId);
 
-            if (!get.Execution.IsSuccess)
+            if (!rentalResult.Execution.IsSuccess)
             {
-                throw new ApplicationException(get.Execution.Error.Message);
+                throw new ApplicationException(rentalResult.Execution.Error.Message);
             }
 
-            return _rentalViewModelMapper.From(get.Data);
+            return _rentalViewModelMapper.From(rentalResult.Data);
         }
 
         [HttpPost]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using FluentAssertions;
 using VacationRental.Api.Models;
 using Xunit;
 
@@ -21,22 +22,48 @@ namespace VacationRental.Api.Tests
         {
             var request = new RentalBindingModel
             {
+                Units = 25,
+                PreparationTimeInDays = 2
+            };
+
+            ResourceIdViewModel postResult;
+            using (var postResponse = await _client.PostAsJsonAsync($"/api/v1/rentals", request))
+            {
+                postResponse.IsSuccessStatusCode.Should().BeTrue();
+                postResult = await postResponse.Content.ReadAsAsync<ResourceIdViewModel>();
+            }
+
+            using (var getResponse = await _client.GetAsync($"/api/v1/rentals/{postResult.Id}"))
+            {
+                getResponse.IsSuccessStatusCode.Should().BeTrue();
+
+                var getResult = await getResponse.Content.ReadAsAsync<RentalViewModel>();
+                getResult.Units.Should().Be(request.Units);
+                getResult.PreparationTimeInDays.Should().Be(request.PreparationTimeInDays);
+            }
+        }
+        
+        [Fact]
+        public async Task GivenRequestWithoutPreparation_WhenPostRental_ThenAGetReturns0Preparation()
+        {
+            var request = new RentalBindingModel
+            {
                 Units = 25
             };
 
             ResourceIdViewModel postResult;
             using (var postResponse = await _client.PostAsJsonAsync($"/api/v1/rentals", request))
             {
-                Assert.True(postResponse.IsSuccessStatusCode);
+                postResponse.IsSuccessStatusCode.Should().BeTrue();
                 postResult = await postResponse.Content.ReadAsAsync<ResourceIdViewModel>();
             }
 
             using (var getResponse = await _client.GetAsync($"/api/v1/rentals/{postResult.Id}"))
             {
-                Assert.True(getResponse.IsSuccessStatusCode);
+                getResponse.IsSuccessStatusCode.Should().BeTrue();
 
                 var getResult = await getResponse.Content.ReadAsAsync<RentalViewModel>();
-                Assert.Equal(request.Units, getResult.Units);
+                getResult.PreparationTimeInDays.Should().Be(0);
             }
         }
     }

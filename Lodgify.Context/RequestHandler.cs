@@ -2,6 +2,11 @@
 
 namespace Lodgify.Context
 {
+    public interface IContext<TOutput>
+    {
+        RequestHandler<TOutput> Handler { get; set; }
+    }
+
     public class RequestHandler<TOutput>
     {
         private RequestHandler()

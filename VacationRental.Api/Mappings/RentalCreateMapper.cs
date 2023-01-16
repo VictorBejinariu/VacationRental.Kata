@@ -8,7 +8,8 @@ namespace VacationRental.Api.Mappings
         public RentalCreate From(RentalBindingModel input) =>
             new RentalCreate()
             {
-                Units = input.Units
+                Units = input.Units,
+                PreparationTimeIndDays = input.PreparationTimeInDays
             };
     }
 }

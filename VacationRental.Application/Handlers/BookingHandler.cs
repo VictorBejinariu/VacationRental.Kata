@@ -4,6 +4,7 @@ using Lodgify.Context;
 using VacationRental.Application.Abstractions;
 using VacationRental.Application.Contracts;
 using VacationRental.Domain;
+using static VacationRental.Application.Constants;
 
 namespace VacationRental.Application.Handlers
 {
@@ -26,69 +27,86 @@ namespace VacationRental.Application.Handlers
 
             if (result == null)
             {
-                return RequestHandler<Booking>.New().With(Error.WithMessage("Booking not found"));
+                return RequestHandler<Booking>.New().With(Error.WithMessage(BookingNotFoundErrorMessage));
             }
 
             return RequestHandler<Booking>.New().With(result);
         }
 
-        public async Task<RequestHandler<BookingCreateResponse>> Create(BookingCreate input)
-        {
-            //Validation
-            if (input.Nights <= 0)
-            {
-                return RequestHandler<BookingCreateResponse>.New()
-                    .With(Error.WithMessage("Nights must be positive"));
-            }
+        public async Task<RequestHandler<BookingCreateResponse>> Create(BookingCreate input) =>
+            (await BookingCreateAsyncContextBuilder.From(input)
+                .AndThenAlways(Validate)
+                .AndThenTry(ReadCorrespondingRental)
+                .AndThenTry(CheckOverlapping)
+                .AndThenTry(CreateBooking)
+                .Run()
+            ).Handler;
 
-            //ReadRental
-            var rental = await _rentalRepository.GetById(input.RentalId);
+        private Task<BookingCreateContext> Validate(BookingCreateContext context)
+        {
+            if (context.Request.Nights <= 0)
+            {
+                context.Handler.With(Error.WithMessage(NightsMustBePositiveErrorMessage));
+            }
+            return Task.FromResult(context);
+        }
+        private async Task<BookingCreateContext> ReadCorrespondingRental(BookingCreateContext context)
+        {
+            var rental = await _rentalRepository.GetById(context.Request.RentalId);
             
             if (rental == null)
             {
-                return RequestHandler<BookingCreateResponse>.New()
-                    .With(Error.WithMessage("Rental not found"));
+                context.Handler.With(Error.WithMessage(RentalNotFoundErrorMessage));
             }
 
-            //CheckOverlapping
-            for (var i = 0; i < input.Nights; i++)
+            context.Rental = rental;
+            return context;
+        }
+        private async Task<BookingCreateContext> CheckOverlapping(BookingCreateContext context)
+        {
+            for (var i = 0; i < context.Request.Nights; i++)
             {
                 var count = 0;
                 foreach (var booking in await _bookingRepository.Get())
                 {
-                    if (booking.RentalId == input.RentalId
-                        && (booking.Start <= input.Start.Date && booking.Start.AddDays(booking.Nights) > input.Start.Date)
-                        || (booking.Start < input.Start.AddDays(input.Nights) && booking.Start.AddDays(booking.Nights) >= input.Start.AddDays(input.Nights))
-                        || (booking.Start > input.Start && booking.Start.AddDays(booking.Nights) < input.Start.AddDays(input.Nights)))
+                    if (booking.RentalId == context.Request.RentalId
+                        && (booking.Start <= context.Request.Start.Date && booking.Start.AddDays(booking.Nights) > context.Request.Start.Date)
+                        || (booking.Start < context.Request.Start.AddDays(context.Request.Nights) && booking.Start.AddDays(booking.Nights) >= context.Request.Start.AddDays(context.Request.Nights))
+                        || (booking.Start > context.Request.Start && booking.Start.AddDays(booking.Nights) < context.Request.Start.AddDays(context.Request.Nights)))
                     {
                         count++;
                     }
                 }
                 
-                if (count >= rental.Units)
+                if (count >= context.Rental.Units)
                 {
-                    return RequestHandler<BookingCreateResponse>.New()
-                        .With(Error.WithMessage("Not available"));
+                    context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
                 }
-                
             }
-            //Create Booking
+
+            return context;
+        }
+        private async Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
+        {
             var newBooking = new Booking()
             {
-                Nights = input.Nights,
-                RentalId = input.RentalId,
-                Start = input.Start.Date
+                Nights = context.Request.Nights,
+                RentalId = context.Request.RentalId,
+                Start = context.Request.Start.Date
             };
 
             if (!await _bookingRepository.Create(newBooking))
             {
-                return RequestHandler<BookingCreateResponse>.New().With(Error.WithMessage("Failed Insert"));
+                context.Handler.With(Error.WithMessage(FailedInsertErrorMessage));
             }
 
-            return RequestHandler<BookingCreateResponse>.New().With(new BookingCreateResponse()
+            context.Handler.With(new BookingCreateResponse()
             {
                 BookingId = newBooking.Id
             });
+
+            return context;
         }
+
     }
 }
