@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,18 +16,21 @@ namespace VacationRental.Application.Handlers
         private readonly IBookingService _bookingService;
         private readonly IRentalService _rentalService;
         private readonly IUnitRepository _unitRepository;
-        private readonly IEnumerable<IBookingAdditionalWorkHydrator> _additionalWorkHydrators;
+        private readonly IEnumerable<IBookingActualStartHydrator> _actualStartHydrators;
+        private readonly IEnumerable<IBookingActualNightsHydrator> _actualNightsHydrators;
 
         public BookingHandler(
             IBookingService bookingRepository,
             IRentalService rentalRepository,
             IUnitRepository unitRepository,
-            IEnumerable<IBookingAdditionalWorkHydrator> hydrators)
+            IEnumerable<IBookingActualNightsHydrator> actualNightsHydrators,
+            IEnumerable<IBookingActualStartHydrator> actualStartHydrators)
         {
             _bookingService = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
             _rentalService = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
             _unitRepository = unitRepository??throw new ArgumentNullException(nameof(unitRepository));
-            _additionalWorkHydrators = hydrators??new List<IBookingAdditionalWorkHydrator>();
+            _actualStartHydrators = actualStartHydrators ?? new List<IBookingActualStartHydrator>();
+            _actualNightsHydrators = actualNightsHydrators??new List<IBookingActualNightsHydrator>();
         }
         
         public async Task<RequestHandler<Booking>> GetById(int bookingId)
@@ -45,8 +49,9 @@ namespace VacationRental.Application.Handlers
             (await BookingCreateAsyncContextBuilder.From(input)
                 .AndThenAlways(Validate)
                 .AndThenTry(ReadCorrespondingRental)
-                .AndThenTry(SelectAvailableUnit)
                 .AndThenTry(CreateBooking)
+                .AndThenTry(SelectAvailableUnit)
+                .AndThenTry(PersistBooking)
                 .Run()
             ).Handler;
 
@@ -72,7 +77,7 @@ namespace VacationRental.Application.Handlers
         }
         private async Task<BookingCreateContext> SelectAvailableUnit(BookingCreateContext context)
         {
-            var newBooking = context.Request;
+            var newBooking = context.BookingEntity;
             
             var rentalUnits = await _unitRepository.GetByRentalId(context.Rental.Id);
             foreach (var unit in rentalUnits)
@@ -81,6 +86,8 @@ namespace VacationRental.Application.Handlers
                 {
                     continue;
                 }
+
+                context.BookingEntity.UnitId = unit.Id;
                 context.AvailableUnit = unit;
                 return context;
             }
@@ -88,38 +95,57 @@ namespace VacationRental.Application.Handlers
             context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
             return context;
         }
-        private async Task<bool> IsUnitAvailableForBooking(Unit unit, BookingCreate newBooking)
+        private async Task<bool> IsUnitAvailableForBooking(Unit unit, Booking newBooking)
         {
             var existingBookings = await _bookingService.GetByUnitId(unit.Id);
             foreach (var booking in existingBookings)
             {
-                foreach (var hydrator in _additionalWorkHydrators)
+                if (await AreOverlapping(booking, newBooking))
                 {
-                    await hydrator.Hydrate(booking);
+                    return false;
                 }
             }
-            return !existingBookings.Any(b=>CheckOverlapping(b,newBooking));
-
+            return true;
         } 
-        private bool CheckOverlapping(Booking existingBooking, BookingCreate newBooking)
+        private async Task<bool> AreOverlapping(Booking existingBooking, Booking newBooking)
         {
-            return existingBooking.Start <= newBooking.Start.Date
-                        && existingBooking.Start.AddDays(existingBooking.Nights) > newBooking.Start.Date
-                    || existingBooking.Start < newBooking.Start.AddDays(newBooking.Nights)
-                        && existingBooking.Start.AddDays(existingBooking.Nights) >= newBooking.Start.AddDays(newBooking.Nights)
-                    || existingBooking.Start > newBooking.Start
-                        && existingBooking.Start.AddDays(existingBooking.Nights) < newBooking.Start.AddDays(newBooking.Nights);
+            var existingBookingStart = existingBooking.Start;
+
+            foreach (var hydrator in _actualStartHydrators)
+            {
+                existingBookingStart = await hydrator.Hydrate(existingBooking, existingBookingStart);
+            }
+            
+            var existingBookingNights = existingBooking.Nights;
+            
+            foreach (var hydrator in _actualNightsHydrators)
+            {
+                existingBookingNights = await hydrator.Hydrate(existingBooking, existingBookingNights);
+            }
+
+            return existingBookingStart <= newBooking.Start.Date
+                    && existingBookingStart.AddDays(existingBookingNights) > newBooking.Start.Date
+                   || existingBookingStart < newBooking.Start.AddDays(newBooking.Nights)
+                    && existingBookingStart.AddDays(existingBookingNights) >= newBooking.Start.AddDays(newBooking.Nights)
+                   || existingBookingStart > newBooking.Start
+                    && existingBookingStart.AddDays(existingBookingNights) < newBooking.Start.AddDays(newBooking.Nights);
         }
-        private async Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
+        private Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
         {
             var newBooking = new Booking()
             {
                 Nights = context.Request.Nights,
                 RentalId = context.Request.RentalId,
-                UnitId = context.AvailableUnit.Id,
                 Start = context.Request.Start.Date
             };
 
+            context.BookingEntity = newBooking;
+            
+            return Task.FromResult(context);
+        }
+        private async Task<BookingCreateContext> PersistBooking(BookingCreateContext context)
+        {
+            var newBooking = context.BookingEntity;
             if (!await _bookingService.Create(newBooking))
             {
                 context.Handler.With(Error.WithMessage(FailedInsertErrorMessage));
@@ -129,7 +155,7 @@ namespace VacationRental.Application.Handlers
             {
                 BookingId = newBooking.Id
             });
-
+            
             return context;
         }
 

@@ -3,9 +3,9 @@ using VacationRental.Domain;
 
 namespace VacationRental.Application.Abstractions
 {
-    public interface IBookingAdditionalWorkHydrator
+    public interface IBookingActualNightsHydrator
     {
         string Key { get;}
-        Task Hydrate(Booking booking);
+        Task<int> Hydrate(Booking booking, int previousValue);
     }
 }

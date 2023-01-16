@@ -47,7 +47,7 @@ namespace VacationRental.Application.Services
                 BookingId = input.Id,
                 RentalId = input.RentalId,
                 UnitId = input.UnitId,
-                Start = input.Start.AddDays(input.Nights).AddDays(1),
+                Start = input.Start.AddDays(input.Nights),
                 Nights = rental.PreparationTimeInDays
             });
             

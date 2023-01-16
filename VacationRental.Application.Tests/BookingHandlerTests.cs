@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Autofac;
 using Autofac.Extras.Moq;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Moq;
 using VacationRental.Application.Abstractions;
+using VacationRental.Application.BookingHydrators;
 using VacationRental.Application.Contracts;
 using VacationRental.Application.Handlers;
 using VacationRental.Domain;
@@ -165,7 +168,13 @@ namespace VacationRental.Application.Tests
         public async Task GivenBookingOverlapping_WhenCreateBooking_ThenShouldReturnErrorWithSpecificError(
             Booking existingBooking, BookingCreate newBooking)
         {
-            using (var mock = AutoMock.GetLoose())
+            using (var mock = AutoMock.GetLoose(cfg=>
+                   {
+                       cfg.RegisterType<PreparationBookingActualNightsHydrator>()
+                           .As<IBookingActualNightsHydrator>();
+                       cfg.RegisterType<VoidBookingActualStartHydrator>()
+                           .As<IBookingActualStartHydrator>();
+                   }))
             {
                 mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.Is<int>(i => i == SomeRentalId)))

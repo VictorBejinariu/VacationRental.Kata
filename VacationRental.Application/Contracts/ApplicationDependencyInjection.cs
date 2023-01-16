@@ -24,7 +24,7 @@ namespace VacationRental.Application.Contracts
 
         private static IServiceCollection RegisterBookingAdditionalWorkHydrators(this IServiceCollection @this)
         {
-            @this.AddSingleton<IBookingAdditionalWorkHydrator, PreparationBookingAdditionalWorkHydrator>();
+            @this.AddSingleton<IBookingActualNightsHydrator, PreparationBookingActualNightsHydrator>();
             return @this;
         }
     }

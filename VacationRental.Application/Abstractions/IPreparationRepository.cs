@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using VacationRental.Domain;
 
 namespace VacationRental.Application.Abstractions
@@ -8,5 +9,6 @@ namespace VacationRental.Application.Abstractions
         Task<Preparation> GetById(int preparationId);
         Task<Preparation> GetByBookingId(int bookingId);
         Task<bool> Create(Preparation preparation);
+        Task<ICollection<Preparation>> Get();
     }
 }

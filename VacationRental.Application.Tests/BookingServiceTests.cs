@@ -73,7 +73,7 @@ namespace VacationRental.Application.Tests
                             p=>p.RentalId == SomeRentalId 
                             && p.BookingId == input.Id
                             && p.UnitId == SomeUnitId
-                            && p.Start == new DateTime(2023,01,03)
+                            && p.Start == new DateTime(2023,01,02)
                             && p.Nights == SomePreparationDaysValue
                             )),Times.Once);
 

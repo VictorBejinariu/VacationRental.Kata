@@ -13,6 +13,7 @@ namespace VacationRental.Application.Handlers
         
         public BookingCreate Request { get; set; }
         public RequestHandler<BookingCreateResponse> Handler { get; set; }
+        public Booking BookingEntity { get; set; }
         public Rental Rental{ get; set; }
         public Unit AvailableUnit { get; set; }
 
