@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Lodgify.Context;
+using Lodgify.Dates;
 using VacationRental.Application.Abstractions;
 using VacationRental.Application.Contracts;
 using VacationRental.Domain;
@@ -123,12 +122,13 @@ namespace VacationRental.Application.Handlers
                 existingBookingNights = await hydrator.Hydrate(existingBooking, existingBookingNights);
             }
 
-            return existingBookingStart <= newBooking.Start.Date
-                    && existingBookingStart.AddDays(existingBookingNights) > newBooking.Start.Date
-                   || existingBookingStart < newBooking.Start.AddDays(newBooking.Nights)
-                    && existingBookingStart.AddDays(existingBookingNights) >= newBooking.Start.AddDays(newBooking.Nights)
-                   || existingBookingStart > newBooking.Start
-                    && existingBookingStart.AddDays(existingBookingNights) < newBooking.Start.AddDays(newBooking.Nights);
+            return new DateInterval(
+                    existingBookingStart, 
+                    existingBookingStart.AddDays(existingBookingNights))
+                .IsOverlapping(
+                    new DateInterval(
+                        newBooking.Start, 
+                        newBooking.Start.AddDays(newBooking.Nights)));
         }
         private Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
         {
@@ -158,6 +158,5 @@ namespace VacationRental.Application.Handlers
             
             return context;
         }
-
     }
 }

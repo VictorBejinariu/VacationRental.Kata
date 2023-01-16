@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lodgify.Context\Lodgify.Context.csproj" />
+    <ProjectReference Include="..\Lodgify.Dates\Lodgify.Dates.csproj" />
     <ProjectReference Include="..\VacationRental.Domain\VacationRental.Domain.csproj" />
   </ItemGroup>
 
