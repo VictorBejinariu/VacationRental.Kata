@@ -19,6 +19,8 @@ namespace VacationRental.Application.Tests
         private const int IdForExistingBooking = 2394;
         private const int SomeNegativeValueForNights = -2308;
         private const int SomeRentalId = 1;
+        private const int SomeUnitId = 9;
+        private const int AnotherUnitId = 10;
         private const int SomeNightsValue = 3;
         private static readonly DateTime SomeStartDate = new DateTime(103499384);
 
@@ -115,18 +117,37 @@ namespace VacationRental.Application.Tests
                         Id = SomeRentalId,
                         Units = 2
                     });
+                mock.Mock<IUnitRepository>()
+                    .Setup(r => r.GetByRentalId(It.Is<int>(i=>i==SomeRentalId)))
+                    .ReturnsAsync(new List<Unit>()
+                    {
+                        new Unit()
+                        {
+                            Id = 1,
+                            RentalId = SomeRentalId,
+                        },
+                        new Unit()
+                        {
+                            Id = 2,
+                            RentalUnitId = SomeRentalId
+                        }
+                    });
                 mock.Mock<IBookingService>()
-                    .Setup(r => r.Get())
+                    .Setup(r => r.GetByUnitId(It.Is<int>(i=>i==1)))
                     .ReturnsAsync(new List<Booking>()
                     {
                         new Booking()
                         {
                             Id = 1,
                             RentalId = SomeRentalId,
+                            UnitId = 1,
                             Start = SomeStartDate.AddDays(1),
                             Nights = 3
                         }
                     });
+                mock.Mock<IBookingService>()
+                    .Setup(r => r.GetByUnitId(It.Is<int>(i=>i==2)))
+                    .ReturnsAsync(new List<Booking>());
                 mock.Mock<IBookingService>()
                     .Setup(r => r.Create(It.IsAny<Booking>()))
                     .ReturnsAsync(true);
@@ -153,8 +174,19 @@ namespace VacationRental.Application.Tests
                         Id = SomeRentalId,
                         Units = 1
                     });
+                mock.Mock<IUnitRepository>()
+                    .Setup(r => r.GetByRentalId(It.Is<int>(i => i == SomeRentalId)))
+                    .ReturnsAsync(new List<Unit>()
+                    {
+                        new Unit()
+                        {
+                            Id = SomeUnitId,
+                            RentalId = SomeRentalId,
+                            RentalUnitId = 1
+                        }
+                    });
                 mock.Mock<IBookingService>()
-                    .Setup(r => r.Get())
+                    .Setup(r => r.GetByUnitId(It.Is<int>(i=>i==SomeUnitId)))
                     .ReturnsAsync(new List<Booking>()
                     {
                         existingBooking
@@ -186,12 +218,32 @@ namespace VacationRental.Application.Tests
                         Id = SomeRentalId,
                         Units = 2
                     });
+                mock.Mock<IUnitRepository>()
+                    .Setup(r => r.GetByRentalId(It.Is<int>(i => i == SomeRentalId)))
+                    .ReturnsAsync(new List<Unit>()
+                    {
+                        new Unit()
+                        {
+                            Id = SomeUnitId,
+                            RentalId = SomeRentalId,
+                            RentalUnitId = 1
+                        },
+                        new Unit()
+                        {
+                            Id = AnotherUnitId,
+                            RentalId = SomeRentalId,
+                            RentalUnitId = 2
+                        }
+                    });
                 mock.Mock<IBookingService>()
-                    .Setup(r => r.Get())
+                    .Setup(r => r.GetByUnitId(It.Is<int>(i=>i==SomeUnitId)))
                     .ReturnsAsync(new List<Booking>()
                     {
                         existingBooking
                     });
+                mock.Mock<IBookingService>()
+                    .Setup(r => r.GetByUnitId(It.Is<int>(i => i == AnotherUnitId)))
+                    .ReturnsAsync(new List<Booking>());
                 mock.Mock<IBookingService>()
                     .Setup(r => r.Create(It.IsAny<Booking>()))
                     .ReturnsAsync(true);

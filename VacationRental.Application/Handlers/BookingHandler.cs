@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Lodgify.Context;
 using VacationRental.Application.Abstractions;
@@ -10,20 +11,23 @@ namespace VacationRental.Application.Handlers
 {
     internal class BookingHandler:IBookingHandler
     {
-        private readonly IBookingService _bookingRepository;
-        private readonly IRentalService _rentalRepository;
+        private readonly IBookingService _bookingService;
+        private readonly IRentalService _rentalService;
+        private readonly IUnitRepository _unitRepository;
 
         public BookingHandler(
             IBookingService bookingRepository,
-            IRentalService rentalRepository)
+            IRentalService rentalRepository,
+            IUnitRepository unitRepository)
         {
-            _bookingRepository = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
-            _rentalRepository = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
+            _bookingService = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
+            _rentalService = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
+            _unitRepository = unitRepository??throw new ArgumentNullException(nameof(unitRepository));
         }
         
         public async Task<RequestHandler<Booking>> GetById(int bookingId)
         {
-            var result = await _bookingRepository.GetById(bookingId);
+            var result = await _bookingService.GetById(bookingId);
 
             if (result == null)
             {
@@ -37,7 +41,7 @@ namespace VacationRental.Application.Handlers
             (await BookingCreateAsyncContextBuilder.From(input)
                 .AndThenAlways(Validate)
                 .AndThenTry(ReadCorrespondingRental)
-                .AndThenTry(CheckOverlapping)
+                .AndThenTry(SelectAvailableUnit)
                 .AndThenTry(CreateBooking)
                 .Run()
             ).Handler;
@@ -52,7 +56,7 @@ namespace VacationRental.Application.Handlers
         }
         private async Task<BookingCreateContext> ReadCorrespondingRental(BookingCreateContext context)
         {
-            var rental = await _rentalRepository.GetById(context.Request.RentalId);
+            var rental = await _rentalService.GetById(context.Request.RentalId);
             
             if (rental == null)
             {
@@ -62,26 +66,28 @@ namespace VacationRental.Application.Handlers
             context.Rental = rental;
             return context;
         }
-        private async Task<BookingCreateContext> CheckOverlapping(BookingCreateContext context)
+        private async Task<BookingCreateContext> SelectAvailableUnit(BookingCreateContext context)
         {
+            var rentalUnits = await _unitRepository.GetByRentalId(context.Rental.Id);
 
-            var count = 0;
-            foreach (var booking in await _bookingRepository.Get())
+            foreach (var unit in rentalUnits)
             {
-                if (booking.RentalId == context.Request.RentalId
-                    && (booking.Start <= context.Request.Start.Date && booking.Start.AddDays(booking.Nights) > context.Request.Start.Date)
-                    || (booking.Start < context.Request.Start.AddDays(context.Request.Nights) && booking.Start.AddDays(booking.Nights) >= context.Request.Start.AddDays(context.Request.Nights))
-                    || (booking.Start > context.Request.Start && booking.Start.AddDays(booking.Nights) < context.Request.Start.AddDays(context.Request.Nights)))
+                var existingBookings = await _bookingService.GetByUnitId(unit.Id);
+                var newBooking = context.Request;
+                var overlappingBooking = existingBookings.FirstOrDefault(b =>
+                    b.Start <= newBooking.Start.Date && b.Start.AddDays(b.Nights) > newBooking.Start.Date
+                    || b.Start < newBooking.Start.AddDays(newBooking.Nights) &&
+                    b.Start.AddDays(b.Nights) >= newBooking.Start.AddDays(newBooking.Nights)
+                    || b.Start> newBooking.Start && b.Start.AddDays(b.Nights)<newBooking.Start.AddDays(newBooking.Nights));
+
+                if (overlappingBooking == null)
                 {
-                    count++;
+                    context.AvailableUnit = unit;
+                    return context;
                 }
             }
             
-            if (count >= context.Rental.Units)
-            {
-                context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
-            }
-
+            context.Handler.With(Error.WithMessage(NotAvailableErrorMessage));
             return context;
         }
         private async Task<BookingCreateContext> CreateBooking(BookingCreateContext context)
@@ -90,10 +96,11 @@ namespace VacationRental.Application.Handlers
             {
                 Nights = context.Request.Nights,
                 RentalId = context.Request.RentalId,
+                UnitId = context.AvailableUnit.Id,
                 Start = context.Request.Start.Date
             };
 
-            if (!await _bookingRepository.Create(newBooking))
+            if (!await _bookingService.Create(newBooking))
             {
                 context.Handler.With(Error.WithMessage(FailedInsertErrorMessage));
             }

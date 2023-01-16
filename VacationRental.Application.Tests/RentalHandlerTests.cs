@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using FluentAssertions;
 using Moq;
 using VacationRental.Application.Abstractions;
+using VacationRental.Application.Handlers;
 using VacationRental.Application.Services;
 using VacationRental.Domain;
 using Xunit;
@@ -38,7 +39,7 @@ namespace VacationRental.Application.Tests
         {
             using (var mock = AutoMock.GetLoose())
             {
-                mock.Mock<IRentalRepository>()
+                mock.Mock<IRentalService>()
                     .Setup(r => r.GetById(It.IsAny<int>()))
                     .ReturnsAsync(
                         new Rental()

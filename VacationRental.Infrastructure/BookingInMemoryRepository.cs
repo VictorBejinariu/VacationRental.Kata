@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using VacationRental.Application.Abstractions;
 using VacationRental.Domain;
@@ -41,6 +42,12 @@ namespace VacationRental.Infrastructure
             }
 
             return Task.FromResult(input.Id>0);
+        }
+
+        public Task<ICollection<Booking>> GetByUnitId(int unitId)
+        {
+            var result = _data.Values.Where(b => b.UnitId == unitId).ToList();
+            return Task.FromResult<ICollection<Booking>>(result);
         }
     }
 }

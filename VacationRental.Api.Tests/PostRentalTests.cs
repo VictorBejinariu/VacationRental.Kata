@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using VacationRental.Api.Models;
+using VacationRental.Application.Abstractions;
 using Xunit;
 
 namespace VacationRental.Api.Tests
@@ -41,7 +42,7 @@ namespace VacationRental.Api.Tests
                 getResult.Units.Should().Be(request.Units);
                 getResult.PreparationTimeInDays.Should().Be(request.PreparationTimeInDays);
             }
-        }
+        }        
         
         [Fact]
         public async Task GivenRequestWithoutPreparation_WhenPostRental_ThenAGetReturns0Preparation()
@@ -66,5 +67,7 @@ namespace VacationRental.Api.Tests
                 getResult.PreparationTimeInDays.Should().Be(0);
             }
         }
+        
+        
     }
 }

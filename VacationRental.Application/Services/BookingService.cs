@@ -9,14 +9,16 @@ namespace VacationRental.Application.Services
     internal class BookingService:IBookingService
     {
         private readonly IBookingRepository _bookingRepository;
+        private readonly IRentalService _rentalService;
 
-        public BookingService(IBookingRepository bookingRepository)
+        public BookingService(IBookingRepository bookingRepository, IRentalService rentalService)
         {
             _bookingRepository = bookingRepository??throw new ArgumentNullException(nameof(bookingRepository));
+            _rentalService = rentalService??throw new ArgumentNullException(nameof(rentalService));
         }
-        public Task<ICollection<Booking>> Get()
+        public async Task<ICollection<Booking>> Get()
         {
-            return _bookingRepository.Get();
+            return await _bookingRepository.Get();
         }
 
         public Task<Booking> GetById(int bookingId)
@@ -24,9 +26,20 @@ namespace VacationRental.Application.Services
             return _bookingRepository.GetById(bookingId);
         }
 
-        public Task<bool> Create(Booking input)
+        public async Task<bool> Create(Booking input)
         {
-            return _bookingRepository.Create(input);
+            if (!await _bookingRepository.Create(input))
+            {
+                return false;
+            }
+
+            return true;
+
+        }
+
+        public async Task<ICollection<Booking>> GetByUnitId(int unitId)
+        {
+            return await _bookingRepository.GetByUnitId(unitId);
         }
     }
 }

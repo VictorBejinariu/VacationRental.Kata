@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.TestHost;
 using System;
 using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using VacationRental.Application.Abstractions;
+using VacationRental.Infrastructure;
 using Xunit;
 
 namespace VacationRental.Api.Tests
@@ -13,10 +16,11 @@ namespace VacationRental.Api.Tests
 
         public HttpClient Client { get; }
 
+        //public IUnitRepository UnitRepository { get; } = new UnitInMemoryRepository();
+
         public IntegrationFixture()
         {
             var builder = new WebHostBuilder().UseStartup<Startup>();
-            
             //Inject services here
             
             _server = new TestServer(builder);

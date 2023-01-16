@@ -6,20 +6,20 @@ using VacationRental.Application.Contracts;
 using VacationRental.Domain;
 using static VacationRental.Application.Constants;
 
-namespace VacationRental.Application.Services
+namespace VacationRental.Application.Handlers
 {
     internal class RentalHandler:IRentalHandler
     {
-        private readonly IRentalRepository _rentalRepository;
+        private readonly IRentalService _rentalService;
 
-        public RentalHandler(IRentalRepository rentalRepository)
+        public RentalHandler(IRentalService rentalRepository)
         {
-            _rentalRepository = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
+            _rentalService = rentalRepository??throw new ArgumentNullException(nameof(rentalRepository));
         }
         
         public async Task<RequestHandler<Rental>> GetById(int rentalId)
         {
-            var rental = await _rentalRepository.GetById(rentalId);
+            var rental = await _rentalService.GetById(rentalId);
             if (rental == null)
             {
                 return RequestHandler<Rental>
@@ -45,7 +45,7 @@ namespace VacationRental.Application.Services
                 PreparationTimeInDays = input.PreparationTimeIndDays??0
             };
 
-            if (!await _rentalRepository.Create(rental))
+            if (!await _rentalService.Create(rental))
             {
                 return RequestHandler<RentalCreateResponse>
                     .New()
