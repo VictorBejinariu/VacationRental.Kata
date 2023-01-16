@@ -28,7 +28,7 @@ namespace VacationRental.Application.Handlers
             if (rental == null)
                 return RequestHandler<RentalCalendar>.New().With(Error.WithMessage(RentalNotFoundErrorMessage));
             
-            
+            return RequestHandler<RentalCalendar>.New().With(Error.WithMessage("Not implmented"));
             
         }
     }
