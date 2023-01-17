@@ -31,6 +31,7 @@ namespace VacationRental.Api
             @this.AddSingleton<RentalCreateMapper>();
             @this.AddSingleton<BookingCreateMapper>();
             @this.AddSingleton<BookingViewModelMapper>();
+            @this.AddSingleton<RentalUpdateMapper>();
             
             return @this;
         }

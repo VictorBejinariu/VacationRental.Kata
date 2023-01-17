@@ -8,5 +8,6 @@ namespace VacationRental.Application.Contracts
     {
         Task<RequestHandler<Rental>> GetById(int rentalId);
         Task<RequestHandler<RentalCreateResponse>> Create(RentalCreate input);
+        Task<RequestHandler<RentalUpdateResponse>> Update(RentalUpdate input);
     }
 }

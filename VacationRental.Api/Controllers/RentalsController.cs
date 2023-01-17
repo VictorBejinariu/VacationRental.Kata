@@ -14,16 +14,20 @@ namespace VacationRental.Api.Controllers
         private readonly IRentalHandler _rentalHandler;
         private readonly RentalViewModelMapper _rentalViewModelMapper;
         private readonly RentalCreateMapper _rentalCreateMapper;
+        private readonly RentalUpdateMapper _rentalUpdateMapper;
+
 
         public RentalsController(
             IRentalHandler rentalHandler,
             RentalViewModelMapper rentalViewModelMapper,
-            RentalCreateMapper rentalCreateMapper)
+            RentalCreateMapper rentalCreateMapper,
+            RentalUpdateMapper rentalUpdateMapper)
         {
             _rentalHandler = rentalHandler??throw new ArgumentNullException(nameof(rentalHandler));
             _rentalViewModelMapper =
                 rentalViewModelMapper ?? throw new ArgumentNullException(nameof(rentalViewModelMapper));
             _rentalCreateMapper = rentalCreateMapper??throw new ArgumentNullException(nameof(rentalCreateMapper));
+            _rentalUpdateMapper = rentalUpdateMapper??throw new ArgumentNullException(nameof(rentalUpdateMapper));
         }
 
         [HttpGet]
@@ -44,17 +48,34 @@ namespace VacationRental.Api.Controllers
         public async Task<ResourceIdViewModel> Post(RentalBindingModel model)
         {
             var createRequest = _rentalCreateMapper.From(model);
-            var create = await _rentalHandler.Create(createRequest);
+            var response = await _rentalHandler.Create(createRequest);
 
-            if (!create.Execution.IsSuccess)
+            if (!response.Execution.IsSuccess)
             {
-                throw new ApplicationException(create.Execution.Error.Message);
+                throw new ApplicationException(response.Execution.Error.Message);
             }
 
             return new ResourceIdViewModel()
             {
-                Id = create.Data.RentalId
+                Id = response.Data.RentalId
             };
         }
+
+        [HttpPut]
+        [Route("{rentalId:int}")]
+        public async Task<IActionResult> Put(int rentalId, RentalUpdateBindingModel model)
+        {
+            var request = _rentalUpdateMapper.From(model);
+            request.Id = rentalId;
+
+            var response = await _rentalHandler.Update(request);
+
+            if (!response.Execution.IsSuccess)
+            {
+                throw new ApplicationException(response.Execution.Error.Message);
+            }
+            
+            return Ok();
+        } 
     }
 }

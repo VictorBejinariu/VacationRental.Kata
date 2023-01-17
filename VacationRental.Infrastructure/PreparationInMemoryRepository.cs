@@ -46,5 +46,11 @@ namespace VacationRental.Infrastructure
         {
             return Task.FromResult<ICollection<Preparation>>(_data.Values);
         }
+
+        public Task<ICollection<Preparation>> GetByUnitId(int unitId)
+        {
+            return Task.FromResult<ICollection<Preparation>>(
+                _data.Values.Where(p => p.UnitId == unitId).ToList());
+        }
     }
 }

@@ -10,5 +10,6 @@ namespace VacationRental.Application.Abstractions
         Task<Preparation> GetByBookingId(int bookingId);
         Task<bool> Create(Preparation preparation);
         Task<ICollection<Preparation>> Get();
+        Task<ICollection<Preparation>> GetByUnitId(int unitId);
     }
 }
