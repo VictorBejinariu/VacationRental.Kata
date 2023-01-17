@@ -66,7 +66,5 @@ namespace VacationRental.Api.Tests
                 getResult.PreparationTimeInDays.Should().Be(0);
             }
         }
-        
-        
     }
 }

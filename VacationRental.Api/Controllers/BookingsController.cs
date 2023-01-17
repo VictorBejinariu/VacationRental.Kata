@@ -28,27 +28,27 @@ namespace VacationRental.Api.Controllers
         [Route("{bookingId:int}")]
         public async Task<BookingViewModel> Get(int bookingId)
         {
-            var get = await _bookingHandler.GetById(bookingId);
-            if (!get.Execution.IsSuccess)
+            var retrieval = await _bookingHandler.GetById(bookingId);
+            if (!retrieval.Execution.IsSuccess)
             {
-                throw new ApplicationException(get.Execution.Error.Message);
+                throw new ApplicationException(retrieval.Execution.Error.Message);
             }
-            return _bookingViewModelMapper.From(get.Data);
+            return _bookingViewModelMapper.From(retrieval.Data);
         }
 
         [HttpPost]
         public async Task<ResourceIdViewModel> Post(BookingBindingModel model)
         {
-            var create = await _bookingHandler.Create(_bookingCreateMapper.From(model));
+            var creation = await _bookingHandler.Create(_bookingCreateMapper.From(model));
 
-            if (!create.Execution.IsSuccess)
+            if (!creation.Execution.IsSuccess)
             {
-                throw new ApplicationException(create.Execution.Error.Message);
+                throw new ApplicationException(creation.Execution.Error.Message);
             }
 
             return new ResourceIdViewModel()
             {
-                Id = create.Data.BookingId
+                Id = creation.Data.BookingId
             };
         }
     }

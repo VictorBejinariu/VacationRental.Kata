@@ -55,7 +55,6 @@ namespace VacationRental.Application.Tests
                 
                 unitMock.Verify(r=>r.Create(It.IsAny<Unit>()),Times.Exactly(2));
             }
-
         }
         
     }

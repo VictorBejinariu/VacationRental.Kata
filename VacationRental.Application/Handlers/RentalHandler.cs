@@ -59,7 +59,7 @@ namespace VacationRental.Application.Handlers
             {
                 return RequestHandler<RentalCreateResponse>
                     .New()
-                    .With(Error.WithMessage("Failed to Insert Rental"));
+                    .With(Error.WithMessage(FailedInsertErrorMessage));
             }
 
             return RequestHandler<RentalCreateResponse>
